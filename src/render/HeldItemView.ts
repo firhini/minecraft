@@ -70,6 +70,11 @@ export class HeldItemView {
     this.holder.rotation.set(s * 0.5, 0, 0);
   }
 
+  resize(aspect: number): void {
+    this.camera.aspect = aspect;
+    this.camera.updateProjectionMatrix();
+  }
+
   render(): void {
     if (!this.current) return;
     this.renderer.clearDepth();

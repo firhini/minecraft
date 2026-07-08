@@ -13,5 +13,6 @@ export default defineConfig({
     cssCodeSplit: false,
     chunkSizeWarningLimit: 4000,
   },
-  worker: { format: 'es' },
+  // Classic (iife) blob workers have the broadest support, incl. file:// pages.
+  worker: { format: 'iife' },
 });

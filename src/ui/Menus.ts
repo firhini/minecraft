@@ -108,6 +108,7 @@ export class Menus {
   }
 
   private settingsReturn: 'title' | 'pause' = 'title';
+  private lastHasSave = false;
 
   private checkbox(label: string, checked: boolean): { row: HTMLDivElement; input: HTMLInputElement } {
     const row = div('check-row');
@@ -122,6 +123,7 @@ export class Menus {
   }
 
   showTitle(hasSave: boolean): void {
+    this.lastHasSave = hasSave;
     this.hideAll();
     this.continueBtn.style.display = hasSave ? 'block' : 'none';
     this.title.style.display = 'flex';
@@ -176,7 +178,7 @@ export class Menus {
 
     card.appendChild(button('Back', 'primary', () => {
       this.audio.uiClick();
-      if (this.settingsReturn === 'title') this.showTitle(true); else this.showPause();
+      if (this.settingsReturn === 'title') this.showTitle(this.lastHasSave); else this.showPause();
     }));
     this.settingsPanel.appendChild(card);
   }

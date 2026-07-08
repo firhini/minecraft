@@ -69,6 +69,7 @@ export class Game {
   private stepDist = 0;
   private autosaveTimer = 0;
   private spawnResolved = false;
+  private tmpVec = new THREE.Vector3();
 
   constructor(container: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', stencil: false });
@@ -95,6 +96,7 @@ export class Game {
     this.inventoryUI = new InventoryUI(this.atlas, this.inventory, this.audio);
     this.overlay.appendChild(this.inventoryUI.root);
     this.inventoryUI.onClose = () => this.closeInventory();
+    this.inventoryUI.onDropLeftover = (id, count) => this.dropLeftover(id, count);
 
     this.menus = new Menus(this.settings, this.audio, {
       onPlay: (seed, creative) => this.startNewWorld(seed, creative),
@@ -179,6 +181,13 @@ export class Game {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.heldView?.resize(window.innerWidth / window.innerHeight);
+  }
+
+  private dropLeftover(id: string, count: number): void {
+    if (!this.dropped) return;
+    const f = this.player.getForwardXZ(this.tmpVec);
+    this.dropped.spawn(id, count, this.player.pos.x + f.x * 0.6, this.player.pos.y + 1.2, this.player.pos.z + f.z * 0.6);
   }
 
   // --- World lifecycle -------------------------------------------------------
@@ -293,6 +302,7 @@ export class Game {
     this.chunks?.dispose();
     this.dropped?.clear();
     this.heldView?.dispose();
+    this.sky?.dispose();
     this.chunks = null;
     this.sky = null;
     this.interaction = null;
@@ -349,7 +359,12 @@ export class Game {
 
   private onDeath(): void {
     this.state = 'dead';
+    // Dismiss any open inventory first (returns its items) so it isn't stuck
+    // over the death/respawn screens; closeInventory() no-ops now that state='dead'.
+    if (this.inventoryUI.visible) this.inventoryUI.close();
+    if (this.interaction) this.interaction.uiBlocking = false;
     this.input.exitLock();
+    this.clickPrompt.style.display = 'none';
     this.menus.showDeath();
   }
 
@@ -478,6 +493,9 @@ export class Game {
     this.heldView?.update(dt, this.inventory.getSelected(), this.interaction.swing);
 
     this.hud.updateStats(this.survival, dt);
+    // Prompt the player to click when the pointer isn't captured (pointer lock
+    // can't be acquired from the async load transition without a user gesture).
+    this.clickPrompt.style.display = this.input.locked ? 'none' : 'block';
     if (this.settings.data.showFps) this.hud.setDebug(true, this.debugText());
     else this.hud.setDebug(false, '');
 

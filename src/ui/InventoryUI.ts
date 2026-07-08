@@ -32,6 +32,8 @@ export class InventoryUI {
   private title: HTMLDivElement;
 
   onClose: (() => void) | null = null;
+  /** Called with items that couldn't fit back into the inventory on close. */
+  onDropLeftover: ((id: string, count: number, durability?: number) => void) | null = null;
 
   constructor(private atlas: TextureAtlas, private inventory: Inventory, private audio: AudioEngine) {
     this.root = document.createElement('div');
@@ -135,12 +137,20 @@ export class InventoryUI {
 
   close(): void {
     if (!this.visible) return;
-    // Return crafting ingredients & cursor to inventory.
+    // Return crafting ingredients & cursor to inventory; drop whatever won't fit.
     for (let i = 0; i < this.craft.length; i++) {
       const s = this.craft[i];
-      if (s) { this.inventory.add(s.id, s.count, s.durability); this.craft[i] = null; }
+      if (s) {
+        const left = this.inventory.add(s.id, s.count, s.durability);
+        if (left > 0) this.onDropLeftover?.(s.id, left, s.durability);
+        this.craft[i] = null;
+      }
     }
-    if (this.cursor) { this.inventory.add(this.cursor.id, this.cursor.count, this.cursor.durability); this.cursor = null; }
+    if (this.cursor) {
+      const left = this.inventory.add(this.cursor.id, this.cursor.count, this.cursor.durability);
+      if (left > 0) this.onDropLeftover?.(this.cursor.id, left, this.cursor.durability);
+      this.cursor = null;
+    }
     this.updateCursorEl();
     this.visible = false;
     this.root.style.display = 'none';

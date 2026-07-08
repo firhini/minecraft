@@ -149,6 +149,15 @@ export class Sky {
 
   getSunDir(): THREE.Vector3 { return this.sunDir; }
 
+  dispose(): void {
+    this.scene.remove(this.dome);
+    this.scene.remove(this.stars);
+    this.dome.geometry.dispose();
+    (this.dome.material as THREE.Material).dispose();
+    this.stars.geometry.dispose();
+    (this.stars.material as THREE.Material).dispose();
+  }
+
   setFogDistances(near: number, far: number): void {
     this.materials.setFog(this.fogColor, near, far);
   }
