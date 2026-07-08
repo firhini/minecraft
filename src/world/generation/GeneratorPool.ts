@@ -1,4 +1,4 @@
-import GeneratorWorker from './generator.worker?worker';
+import GeneratorWorker from './generator.worker?worker&inline';
 
 // ---------------------------------------------------------------------------
 // Pool of terrain-generation workers. Round-robins requests and resolves the

@@ -6,3 +6,6 @@ dist-ssr/
 .vite/
 *.log
 .pwtest.mjs
+
+dist-standalone/
+VoxelCraft.html
