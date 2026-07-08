@@ -65,7 +65,7 @@ export function computeChunkLight(world: World, chunk: Chunk): void {
     }
   }
 
-  computeSky(neighbors);
+  computeSky();
   computeBlock();
 
   // Write interior back into the chunk.
@@ -80,7 +80,7 @@ export function computeChunkLight(world: World, chunk: Chunk): void {
   chunk.lightDirty = false;
 }
 
-function computeSky(neighbors: (Chunk | undefined)[]): void {
+function computeSky(): void {
   // Column init for interior columns (borders keep their neighbour seed values).
   for (let pz = 1; pz < PADZ - 1; pz++) {
     for (let px = 1; px < PADX - 1; px++) {
@@ -100,8 +100,7 @@ function computeSky(neighbors: (Chunk | undefined)[]): void {
   for (let i = 0; i < PADVOL; i++) {
     if (padSky[i] > 1) queue[tail++] = i;
   }
-  bfs(padSky, queue, head, tail, true);
-  void neighbors;
+  bfs(padSky, queue, head, tail);
 }
 
 function computeBlock(): void {
@@ -118,11 +117,11 @@ function computeBlock(): void {
       }
     }
   }
-  bfs(padBlk, queue, head, tail, false);
+  bfs(padBlk, queue, head, tail);
 }
 
-/** Generic flood fill. `sky` enables no-decrement straight-down propagation. */
-function bfs(light: Uint8Array, q: Int32Array, head: number, tail: number, sky: boolean): void {
+/** Generic flood fill: light spreads to neighbours, losing 1 per step plus any filter. */
+function bfs(light: Uint8Array, q: Int32Array, head: number, tail: number): void {
   // Use a growable fallback if the fixed queue overflows.
   const overflow: number[] = [];
   const push = (v: number) => {
@@ -143,8 +142,7 @@ function bfs(light: Uint8Array, q: Int32Array, head: number, tail: number, sky: 
     tryNeighbor(px, py, pz + 1, level - 1);
     tryNeighbor(px, py, pz - 1, level - 1);
     tryNeighbor(px, py + 1, pz, level - 1);
-    // Straight down: skylight passes without distance loss.
-    tryNeighbor(px, py - 1, pz, sky ? level : level - 1);
+    tryNeighbor(px, py - 1, pz, level - 1);
   };
 
   const tryNeighbor = (px: number, py: number, pz: number, incoming: number) => {

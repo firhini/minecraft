@@ -414,7 +414,8 @@ function emitCross(
       acc.positions.push(q[c][0], q[c][1], q[c][2]);
       acc.uvs.push(uvcorners[c][0], uvcorners[c][1]);
       acc.layers.push(layer);
-      acc.light.push(shade, sky, blk, wave);
+      // Only the top vertices (c >= 2) sway, so the plant stays rooted.
+      acc.light.push(shade, sky, blk, c >= 2 ? wave : 0);
     }
     // Double-sided: emit both windings so plants show from every angle.
     acc.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);

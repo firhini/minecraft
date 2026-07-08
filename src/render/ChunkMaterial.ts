@@ -33,9 +33,8 @@ void main() {
   if (alight.w > 0.5) {
     vec3 wp = (modelMatrix * vec4(position, 1.0)).xyz;
     float ph = uTime * 2.2 + wp.x * 0.7 + wp.z * 0.7 + wp.y * 0.25;
-    float top = clamp(fract(wp.y + 0.02), 0.0, 1.0);
-    pos.x += sin(ph) * uWaveAmp * top;
-    pos.z += cos(ph * 0.85) * uWaveAmp * 0.6 * top;
+    pos.x += sin(ph) * uWaveAmp;
+    pos.z += cos(ph * 0.85) * uWaveAmp * 0.6;
   }
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);

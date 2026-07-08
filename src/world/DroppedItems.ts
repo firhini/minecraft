@@ -69,6 +69,9 @@ export class DroppedItems {
       const d = this.drops[i];
       d.age += dt;
 
+      // Despawn very old drops so entities don't accumulate forever.
+      if (d.age > 300) { this.remove(i); continue; }
+
       // Attraction to player once pickable.
       const dx = player.pos.x - d.pos.x;
       const dy = player.pos.y + 0.8 - d.pos.y;
@@ -76,15 +79,12 @@ export class DroppedItems {
       const dist = Math.hypot(dx, dy, dz);
 
       if (d.age > 0.5 && dist < 1.5) {
-        if (inventory.canAdd(d.id, d.count)) {
-          const left = inventory.add(d.id, d.count);
-          if (left === 0) {
-            this.remove(i);
-            this.onPickup?.();
-            continue;
-          } else {
-            d.count = left;
-          }
+        // Pick up whatever fits (partial pickups allowed).
+        const left = inventory.add(d.id, d.count);
+        if (left < d.count) {
+          this.onPickup?.();
+          if (left === 0) { this.remove(i); continue; }
+          d.count = left;
         }
       }
 

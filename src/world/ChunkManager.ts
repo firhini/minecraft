@@ -152,6 +152,15 @@ export class ChunkManager {
       chunk.state = Math.max(chunk.state, ChunkState.Lit) as ChunkState;
       chunk.dirty = true;
       this.world.dirtyMesh.add(chunk);
+      // Already-meshed neighbours sampled this chunk's border light; refresh them
+      // so late-arriving light doesn't bake in dark seams.
+      for (const [ddx, ddz] of NEIGHBORS8) {
+        const n = this.world.getChunk(chunk.cx + ddx, chunk.cz + ddz);
+        if (n && n.state >= ChunkState.Meshed && !n.dirty) {
+          n.dirty = true;
+          this.world.dirtyMesh.add(n);
+        }
+      }
       done++;
     }
   }
